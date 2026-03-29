@@ -165,6 +165,7 @@ public partial class App : Application
                 services.AddSingleton<IMihoyoMapApiService, MihoyoMapApiService>();
                 services.AddSingleton<IKongyingTavernApiService, KongyingTavernApiService>();
                 services.AddSingleton<IMaskMapPointService, MaskMapPointService>();
+                services.AddSingleton<ICollectedPointsService, CollectedPointsService>();
 
                 services.AddSingleton(TimeProvider.System);
                 services.AddSingleton<IServerTimeProvider, ServerTimeProvider>();

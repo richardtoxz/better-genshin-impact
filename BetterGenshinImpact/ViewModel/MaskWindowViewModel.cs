@@ -67,6 +67,8 @@ namespace BetterGenshinImpact.ViewModel
 
         [ObservableProperty] private ObservableCollection<MaskMapPointLabel> _mapPointLabels = [];
 
+        [ObservableProperty] private HashSet<string> _collectedPointIds = [];
+
         [ObservableProperty] private bool _isMapPointsLoading;
 
         [ObservableProperty] private string _mapPointsLoadingText = "正在加载点位...";
@@ -126,6 +128,16 @@ namespace BetterGenshinImpact.ViewModel
             RefreshSettings();
             InitializeStatusList();
             InitFps();
+            LoadCollectedPoints();
+        }
+
+        private void LoadCollectedPoints()
+        {
+            var service = App.GetService<ICollectedPointsService>();
+            if (service != null)
+            {
+                CollectedPointIds = new HashSet<string>(service.CollectedIds);
+            }
         }
 
         [RelayCommand]
@@ -656,10 +668,19 @@ namespace BetterGenshinImpact.ViewModel
         [RelayCommand]
         private Task OnPointRightClick(MaskMapPoint? point)
         {
-            if (point != null)
+            if (point == null)
             {
-                // 自定义右键逻辑
+                return Task.CompletedTask;
             }
+
+            var service = App.GetService<ICollectedPointsService>();
+            if (service == null)
+            {
+                return Task.CompletedTask;
+            }
+
+            service.Toggle(point.Id);
+            CollectedPointIds = new HashSet<string>(service.CollectedIds);
 
             return Task.CompletedTask;
         }
