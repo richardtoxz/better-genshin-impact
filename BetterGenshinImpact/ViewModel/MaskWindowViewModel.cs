@@ -82,7 +82,8 @@ namespace BetterGenshinImpact.ViewModel
         public IReadOnlyList<MapPointApiProviderOption> MapPointApiProviderOptions { get; } =
         [
             new(MapPointApiProvider.MihoyoMap, "米游社大地图"),
-            new(MapPointApiProvider.KongyingTavern, "空荧酒馆")
+            new(MapPointApiProvider.KongyingTavern, "空荧酒馆"),
+            new(MapPointApiProvider.HoYoLab, "HoYoLab (pt-BR)")
         ];
 
         [ObservableProperty] private MapPointApiProviderOption? _selectedMapPointApiProviderOption;
