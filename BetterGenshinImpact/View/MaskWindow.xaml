@@ -90,6 +90,7 @@
                                               Visibility="{Binding Config.MapMaskConfig.MiniMapMaskEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"
                                               PointsSource="{Binding MapPoints}"
                                               LabelsSource="{Binding MapPointLabels}"
+                                              CollectedPointIds="{Binding CollectedPointIds}"
                                               IsHitTestVisible="False">
                     <Canvas.Left>
                         <MultiBinding Converter="{StaticResource OverlayRelativeOrAbsoluteConverter}">
@@ -461,6 +462,7 @@
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                    PointsSource="{Binding MapPoints}"
                                    LabelsSource="{Binding MapPointLabels}"
+                                   CollectedPointIds="{Binding CollectedPointIds}"
                                    PointClickCommand="{Binding PointClickCommand}"
                                    PointRightClickCommand="{Binding PointRightClickCommand}"
                                    PointHoverCommand="{Binding PointHoverCommand}" />

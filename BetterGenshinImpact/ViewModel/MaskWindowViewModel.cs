@@ -40,7 +40,7 @@ namespace BetterGenshinImpact.ViewModel
         public AllConfig? Config { get; set; }
 
         [ObservableProperty] private string _fps = "0";
-        
+
         [ObservableProperty] private double _maskWindowWidth;
 
         [ObservableProperty] private double _maskWindowHeight;
@@ -66,6 +66,8 @@ namespace BetterGenshinImpact.ViewModel
         [ObservableProperty] private ObservableCollection<MaskMapPoint> _mapPoints = [];
 
         [ObservableProperty] private ObservableCollection<MaskMapPointLabel> _mapPointLabels = [];
+
+        [ObservableProperty] private HashSet<string> _collectedPointIds = [];
 
         [ObservableProperty] private bool _isMapPointsLoading;
 
@@ -126,6 +128,16 @@ namespace BetterGenshinImpact.ViewModel
             RefreshSettings();
             InitializeStatusList();
             InitFps();
+            LoadCollectedPoints();
+        }
+
+        private void LoadCollectedPoints()
+        {
+            var service = App.GetService<ICollectedPointsService>();
+            if (service != null)
+            {
+                CollectedPointIds = new HashSet<string>(service.CollectedIds);
+            }
         }
 
         [RelayCommand]
@@ -654,14 +666,22 @@ namespace BetterGenshinImpact.ViewModel
         }
 
         [RelayCommand]
-        private Task OnPointRightClick(MaskMapPoint? point)
+        private async Task OnPointRightClick(MaskMapPoint? point)
         {
-            if (point != null)
+            if (point == null)
             {
-                // 自定义右键逻辑
+                return;
             }
 
-            return Task.CompletedTask;
+            var service = App.GetService<ICollectedPointsService>();
+            if (service == null)
+            {
+                return;
+            }
+
+            await Task.Run(() => service.Toggle(point.Id));
+
+            CollectedPointIds = new HashSet<string>(service.CollectedIds);
         }
 
         [RelayCommand]

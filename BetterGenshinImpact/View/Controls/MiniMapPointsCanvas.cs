@@ -28,6 +28,13 @@ public sealed class MiniMapPointsCanvas : FrameworkElement
             typeof(MiniMapPointsCanvas),
             new PropertyMetadata(null, OnLabelsSourceChanged));
 
+    public static readonly DependencyProperty CollectedPointIdsProperty =
+        DependencyProperty.Register(
+            nameof(CollectedPointIds),
+            typeof(HashSet<string>),
+            typeof(MiniMapPointsCanvas),
+            new PropertyMetadata(null, OnCollectedPointIdsChanged));
+
     private readonly VisualCollection _children;
     private readonly DrawingVisual _drawingVisual;
     private readonly Dictionary<string, Brush> _colorBrushCache;
@@ -36,6 +43,7 @@ public sealed class MiniMapPointsCanvas : FrameworkElement
     private ObservableCollection<MaskMapPoint>? _points;
     private List<MaskMapPoint> _allPoints = new();
     private Dictionary<string, MaskMapPointLabel> _labelMap = new();
+    private HashSet<string> _collectedIds = new();
     private Rect _viewportRect = Rect.Empty;
 
     public ObservableCollection<MaskMapPoint>? PointsSource
@@ -48,6 +56,12 @@ public sealed class MiniMapPointsCanvas : FrameworkElement
     {
         get => (IEnumerable<MaskMapPointLabel>?)GetValue(LabelsSourceProperty);
         set => SetValue(LabelsSourceProperty, value);
+    }
+
+    public HashSet<string>? CollectedPointIds
+    {
+        get => (HashSet<string>?)GetValue(CollectedPointIdsProperty);
+        set => SetValue(CollectedPointIdsProperty, value);
     }
 
     public MiniMapPointsCanvas()
@@ -72,6 +86,13 @@ public sealed class MiniMapPointsCanvas : FrameworkElement
     {
         var canvas = (MiniMapPointsCanvas)d;
         canvas.UpdateLabels(e.NewValue as IEnumerable<MaskMapPointLabel>);
+    }
+
+    private static void OnCollectedPointIdsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var canvas = (MiniMapPointsCanvas)d;
+        canvas._collectedIds = e.NewValue as HashSet<string> ?? new HashSet<string>();
+        canvas.Refresh();
     }
 
     protected override void OnVisualParentChanged(DependencyObject oldParent)
@@ -202,6 +223,12 @@ public sealed class MiniMapPointsCanvas : FrameworkElement
 
     private void DrawPoint(DrawingContext dc, MaskMapPoint point, double centerX, double centerY, double width, double height)
     {
+        var isCollected = _collectedIds.Contains(point.Id);
+        if (isCollected)
+        {
+            dc.PushOpacity(0.3);
+        }
+
         var radius = width / 2.0;
         const double strokeThickness = 2.0;
 
@@ -252,6 +279,30 @@ public sealed class MiniMapPointsCanvas : FrameworkElement
             var brush = new SolidColorBrush(GenerateRandomColor(point.Id));
             brush.Freeze();
             dc.DrawEllipse(brush, null, new Point(centerX, centerY), width / 2.0, height / 2.0);
+        }
+
+        if (isCollected)
+        {
+            dc.Pop();
+
+            var checkBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
+            checkBrush.Freeze();
+            var checkPen = new Pen(checkBrush, Math.Max(1.5, width * 0.16));
+            checkPen.Freeze();
+
+            var checkSize = radius * 0.6;
+            var cx = circleCenter.X;
+            var cy = circleCenter.Y;
+            var checkGeometry = new StreamGeometry();
+            using (var ctx = checkGeometry.Open())
+            {
+                ctx.BeginFigure(new Point(cx - checkSize, cy), false, false);
+                ctx.LineTo(new Point(cx - checkSize * 0.3, cy + checkSize * 0.7), true, false);
+                ctx.LineTo(new Point(cx + checkSize, cy - checkSize * 0.5), true, false);
+            }
+
+            checkGeometry.Freeze();
+            dc.DrawGeometry(null, checkPen, checkGeometry);
         }
     }
 
